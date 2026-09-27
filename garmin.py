@@ -8,12 +8,28 @@ logger = logging.getLogger(__name__)
 _DUPLICATE_MARKER = "already exists (duplicate)"
 
 
+def _prompt_mfa() -> str:
+    """Ask for a Garmin MFA code on stdin.
+
+    Only reached on a fresh login when no (or no longer valid) cached
+    session is found in the tokenstore. Requires an interactive terminal —
+    once entered, the resulting session is cached and reused by every
+    later run (e.g. from cron), so this should only trigger once.
+    """
+    return input("Enter Garmin Connect MFA code: ").strip()
+
+
 class GarminClient:
-    def __init__(self, username: str, password: str):
-        self._client = Garmin(username, password)
+    def __init__(self, username: str, password: str, tokenstore: str | Path):
+        self._tokenstore = str(tokenstore)
+        self._client = Garmin(username, password, prompt_mfa=_prompt_mfa)
 
     def login(self) -> None:
-        self._client.login()
+        # Reuses a cached session from `tokenstore` when present and still
+        # valid, avoiding a fresh username/password/MFA login on every run.
+        # The underlying client persists a new session there automatically
+        # after a successful login.
+        self._client.login(self._tokenstore)
 
     def import_fit(self, filepath: Path) -> bool:
         """Upload a FIT file as an import.

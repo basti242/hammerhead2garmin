@@ -13,3 +13,4 @@ wheels/
 .env
 sync_state.json
 data/
+garmin_tokens/

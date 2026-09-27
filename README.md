@@ -41,6 +41,23 @@ GARMIN_PASSWORD=your_garmin_password
 SYNC_FROM_DATE=2026-06-01
 ```
 
+## Garmin two-factor authentication (MFA)
+
+If your Garmin account has two-factor authentication enabled, the first login
+needs an interactive terminal to prompt for the MFA code:
+
+```bash
+uv run hammerhead2garmin
+# Enter Garmin Connect MFA code: <code from your authenticator/SMS>
+```
+
+The resulting session is cached in `garmin_tokens` (override the path with
+`GARMIN_TOKENSTORE` in `.env`) and reused on every later run, so MFA is only
+needed once — as long as that directory is preserved between runs. This is
+not compatible as-is with GitHub Actions, since its filesystem does not
+persist across workflow runs; run the first login locally or on your own
+server, or disable MFA on the account used for automated syncs.
+
 ## Automated daily sync via GitHub Actions
 
 The included workflow runs the sync daily at 20:00 UTC:

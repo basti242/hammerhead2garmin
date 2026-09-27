@@ -33,7 +33,9 @@ def main() -> None:
 
     logger.info("Authenticating with Garmin Connect…")
     try:
-        garmin = GarminClient(config.garmin_username, config.garmin_password)
+        garmin = GarminClient(
+            config.garmin_username, config.garmin_password, config.garmin_tokenstore
+        )
         garmin.login()
     except Exception as exc:
         logger.error("Garmin authentication failed: %s", exc)

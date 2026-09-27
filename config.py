@@ -23,6 +23,7 @@ class Config:
     hammerhead_password: str
     garmin_username: str
     garmin_password: str
+    garmin_tokenstore: Path = field(default_factory=lambda: Path("garmin_tokens"))
     state_file: Path = field(default_factory=lambda: Path("sync_state.json"))
     data_dir: Path = field(default_factory=lambda: Path("data"))
     sync_from_date: datetime | None = None
@@ -41,6 +42,7 @@ def load_config() -> Config:
         hammerhead_password=_require("HAMMERHEAD_PASSWORD"),
         garmin_username=_require("GARMIN_USERNAME"),
         garmin_password=_require("GARMIN_PASSWORD"),
+        garmin_tokenstore=Path(os.getenv("GARMIN_TOKENSTORE", "garmin_tokens")),
         state_file=Path(os.getenv("SYNC_STATE_FILE", "sync_state.json")),
         data_dir=Path(os.getenv("DATA_DIR", "data")),
         sync_from_date=_parse_date(raw_date) if raw_date else None,
