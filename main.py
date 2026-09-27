@@ -1,6 +1,5 @@
 import logging
 import sys
-from datetime import datetime, timezone
 
 from config import load_config
 from garmin import GarminClient
@@ -41,11 +40,18 @@ def main() -> None:
         logger.error("Garmin authentication failed: %s", exc)
         sys.exit(1)
 
-    since = state.get_last_sync() or config.sync_from_date
+    # Deliberately not state.get_last_sync(): a Karoo activity can take a
+    # while to reach Hammerhead's cloud, sometimes after the current run's
+    # wall-clock time has already passed it. A cursor that advances to
+    # "now" on every run would then filter that activity out forever once
+    # it does appear. Actual dedup already happens per-activity via
+    # state.is_synced()/mark_synced() below, so this only needs to bound
+    # the very first run — it stays fixed at SYNC_FROM_DATE.
+    since = config.sync_from_date
     if since:
         logger.info("Fetching activities since %s", since.date().isoformat())
     else:
-        logger.info("No previous sync found and SYNC_FROM_DATE not set — fetching all activities")
+        logger.info("SYNC_FROM_DATE not set — fetching all activities")
 
     config.data_dir.mkdir(exist_ok=True)
 
@@ -83,7 +89,6 @@ def main() -> None:
         else:
             skipped += 1
 
-    state.set_last_sync(datetime.now(timezone.utc))
     state.save()
 
     logger.info("Done. Uploaded: %d, skipped: %d", synced, skipped)
